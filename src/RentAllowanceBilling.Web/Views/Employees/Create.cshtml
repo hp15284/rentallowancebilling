@@ -1,0 +1,32 @@
+@model RentAllowanceBilling.Web.Models.Employee
+@{
+    ViewData["Title"] = "New Employee";
+}
+
+<h2>New Employee</h2>
+<hr />
+<form asp-action="Create" method="post" class="col-md-6">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label"></label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Designation" class="form-label"></label>
+        <input asp-for="Designation" class="form-control" />
+        <span asp-validation-for="Designation" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="BasicSalary" class="form-label"></label>
+        <input asp-for="BasicSalary" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="BranchId" class="form-label">Branch</label>
+        <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches">
+            <option value="">-- Select Branch --</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>

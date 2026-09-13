@@ -1,0 +1,8 @@
+@model int
+<form asp-action="Reject" method="post" class="mt-2 border-top pt-2">
+    <input type="hidden" name="BillId" value="@Model" />
+    <div class="input-group">
+        <input type="text" name="Reason" class="form-control" placeholder="Reason for rejection" required />
+        <button type="submit" class="btn btn-outline-danger">Reject</button>
+    </div>
+</form>

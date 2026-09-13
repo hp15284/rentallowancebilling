@@ -1,0 +1,14 @@
+@model RentAllowanceBilling.Web.Models.BillStatus
+@{
+    var (css, text) = Model switch
+    {
+        RentAllowanceBilling.Web.Models.BillStatus.Draft => ("secondary", "Draft"),
+        RentAllowanceBilling.Web.Models.BillStatus.PendingBranchManager => ("warning", "Pending Branch Manager"),
+        RentAllowanceBilling.Web.Models.BillStatus.PendingAccountant => ("info", "Pending Accountant"),
+        RentAllowanceBilling.Web.Models.BillStatus.PendingApproval => ("primary", "Pending Approval"),
+        RentAllowanceBilling.Web.Models.BillStatus.Approved => ("success", "Approved"),
+        RentAllowanceBilling.Web.Models.BillStatus.Rejected => ("danger", "Rejected"),
+        _ => ("secondary", Model.ToString())
+    };
+}
+<span class="badge bg-@css">@text</span>

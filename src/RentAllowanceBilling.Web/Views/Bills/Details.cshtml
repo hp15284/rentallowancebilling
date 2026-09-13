@@ -1,0 +1,182 @@
+@model RentAllowanceBilling.Web.Models.RentAllowanceBill
+@{
+    ViewData["Title"] = $"Bill {Model.BillNumber}";
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h2>Rent Allowance Bill @Model.BillNumber</h2>
+    <div>
+        <partial name="_StatusBadge" model="Model.Status" />
+        <a asp-action="Print" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary ms-2" target="_blank">Print</a>
+    </div>
+</div>
+<hr />
+
+<div class="row">
+    <div class="col-md-4"><strong>Employee:</strong> @Model.Employee?.FullName</div>
+    <div class="col-md-4"><strong>Designation:</strong> @Model.Employee?.Designation</div>
+    <div class="col-md-4"><strong>Basic Salary:</strong> Rs. @Model.BasicSalary.ToString("0.00")</div>
+</div>
+<div class="row mt-2">
+    <div class="col-md-4"><strong>Branch:</strong> @Model.Branch?.Name</div>
+    <div class="col-md-4"><strong>Period:</strong> @Model.PeriodFrom.ToString("dd-MMM-yyyy") - @Model.PeriodTo.ToString("dd-MMM-yyyy")</div>
+    <div class="col-md-4"><strong>Charge Handed Over:</strong> @(Model.ChargeHandedOverDate?.ToString("dd-MMM-yyyy") ?? "-")</div>
+</div>
+<div class="row mt-2">
+    <div class="col-md-12"><strong>Purpose:</strong> @Model.PurposeOfVisit</div>
+</div>
+
+<h5 class="mt-4">Travel Details</h5>
+<table class="table table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th>Date</th><th>From</th><th>To</th><th>Departure</th><th>Return</th>
+            <th>Fare</th><th>Allowance</th><th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var trip in Model.Trips.OrderBy(t => t.TravelDate))
+        {
+            <tr>
+                <td>@trip.TravelDate.ToString("dd-MMM-yyyy")</td>
+                <td>@trip.FromPlace</td>
+                <td>@trip.ToPlace</td>
+                <td>@trip.DepartureTime</td>
+                <td>@trip.ReturnTime</td>
+                <td>@trip.Fare.ToString("0.00")</td>
+                <td>@trip.Allowance.ToString("0.00")</td>
+                <td>@trip.Total.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr class="fw-bold">
+            <td colspan="5" class="text-end">Total</td>
+            <td>@Model.TotalFare.ToString("0.00")</td>
+            <td>@Model.TotalAllowance.ToString("0.00")</td>
+            <td>@Model.TotalAmount.ToString("0.00")</td>
+        </tr>
+    </tfoot>
+</table>
+
+<h5 class="mt-4">Approval Trail</h5>
+<table class="table table-sm">
+    <tbody>
+        <tr>
+            <th style="width:220px">Branch Manager Recommendation</th>
+            <td>
+                @if (Model.BranchManagerActionAt is not null)
+                {
+                    <text>@Model.BranchManagerActionAt?.ToString("dd-MMM-yyyy") &mdash; @Model.BranchManagerRemark</text>
+                }
+                else
+                {
+                    <em class="text-muted">Pending</em>
+                }
+            </td>
+        </tr>
+        <tr>
+            <th>Accountant Verification</th>
+            <td>
+                @if (Model.AccountantActionAt is not null)
+                {
+                    <text>@Model.AccountantActionAt?.ToString("dd-MMM-yyyy") &mdash; Verified Rs. @Model.VerifiedAmount?.ToString("0.00") &mdash; @Model.AccountantRemark</text>
+                }
+                else
+                {
+                    <em class="text-muted">Pending</em>
+                }
+            </td>
+        </tr>
+        <tr>
+            <th>Final Approval</th>
+            <td>
+                @if (Model.ApprovingAuthorityActionAt is not null)
+                {
+                    <text>@Model.ApprovingAuthorityActionAt?.ToString("dd-MMM-yyyy") &mdash; Approved Rs. @Model.ApprovedAmount?.ToString("0.00") (@Model.ApprovedAmountInWords) &mdash; @Model.ApprovingAuthorityRemark</text>
+                }
+                else
+                {
+                    <em class="text-muted">Pending</em>
+                }
+            </td>
+        </tr>
+        @if (Model.Status == RentAllowanceBilling.Web.Models.BillStatus.Rejected)
+        {
+            <tr class="table-danger">
+                <th>Rejected</th>
+                <td>@Model.RejectionReason</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (User.IsInRole("BranchManager") && Model.Status == RentAllowanceBilling.Web.Models.BillStatus.PendingBranchManager)
+{
+    <div class="card mt-3">
+        <div class="card-header">Branch Manager Recommendation</div>
+        <div class="card-body">
+            <form asp-action="Recommend" method="post">
+                <input type="hidden" name="BillId" value="@Model.Id" />
+                <div class="mb-2">
+                    <label class="form-label">Remark</label>
+                    <textarea name="Remark" class="form-control" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Recommend to Accountant</button>
+            </form>
+            <partial name="_RejectForm" model="Model.Id" />
+        </div>
+    </div>
+}
+
+@if (User.IsInRole("Accountant") && Model.Status == RentAllowanceBilling.Web.Models.BillStatus.PendingAccountant)
+{
+    <div class="card mt-3">
+        <div class="card-header">Accountant Verification</div>
+        <div class="card-body">
+            <form asp-action="Verify" method="post">
+                <input type="hidden" name="BillId" value="@Model.Id" />
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Verified Amount (Rs.)</label>
+                        <input type="number" step="0.01" name="Amount" class="form-control" value="@Model.TotalAmount" />
+                    </div>
+                    <div class="col-md-8 mb-2">
+                        <label class="form-label">Remark</label>
+                        <input type="text" name="Remark" class="form-control" />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Verify & Forward for Approval</button>
+            </form>
+            <partial name="_RejectForm" model="Model.Id" />
+        </div>
+    </div>
+}
+
+@if (User.IsInRole("ApprovingAuthority") && Model.Status == RentAllowanceBilling.Web.Models.BillStatus.PendingApproval)
+{
+    <div class="card mt-3">
+        <div class="card-header">Final Approval / Sanction</div>
+        <div class="card-body">
+            <form asp-action="Approve" method="post">
+                <input type="hidden" name="BillId" value="@Model.Id" />
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Approved Amount (Rs.)</label>
+                        <input type="number" step="0.01" name="Amount" class="form-control" value="@Model.VerifiedAmount" />
+                    </div>
+                    <div class="col-md-8 mb-2">
+                        <label class="form-label">Amount in Words</label>
+                        <input type="text" name="AmountInWords" class="form-control" placeholder="Rupees ... only" />
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Remark</label>
+                    <input type="text" name="Remark" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-success">Approve Payment</button>
+            </form>
+            <partial name="_RejectForm" model="Model.Id" />
+        </div>
+    </div>
+}

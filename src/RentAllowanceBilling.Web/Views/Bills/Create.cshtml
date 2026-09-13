@@ -1,0 +1,132 @@
+@model RentAllowanceBilling.Web.Models.ViewModels.BillFormViewModel
+@{
+    ViewData["Title"] = "New Rent Allowance Bill";
+}
+
+<h2>New Rent Allowance Bill (ભાડા ભથ્થા બીલ)</h2>
+<hr />
+
+<form asp-action="Create" method="post" id="billForm">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Employee</label>
+            <input class="form-control" value="@Model.EmployeeName" disabled />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Designation</label>
+            <input class="form-control" value="@Model.Designation" disabled />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Basic Salary (Rs.)</label>
+            <input class="form-control" value="@Model.BasicSalary" disabled />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <label asp-for="PeriodFrom" class="form-label"></label>
+            <input asp-for="PeriodFrom" class="form-control" />
+            <span asp-validation-for="PeriodFrom" class="text-danger"></span>
+        </div>
+        <div class="col-md-3 mb-3">
+            <label asp-for="PeriodTo" class="form-label"></label>
+            <input asp-for="PeriodTo" class="form-control" />
+            <span asp-validation-for="PeriodTo" class="text-danger"></span>
+        </div>
+        <div class="col-md-3 mb-3">
+            <label asp-for="ManagerOnLeaveFrom" class="form-label"></label>
+            <input asp-for="ManagerOnLeaveFrom" class="form-control" />
+        </div>
+        <div class="col-md-3 mb-3">
+            <label asp-for="ManagerOnLeaveTo" class="form-label"></label>
+            <input asp-for="ManagerOnLeaveTo" class="form-control" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="PurposeOfVisit" class="form-label"></label>
+            <input asp-for="PurposeOfVisit" class="form-control" placeholder="e.g. Branch audit work / Deputation to XYZ branch" />
+            <span asp-validation-for="PurposeOfVisit" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ChargeHandedOverDate" class="form-label"></label>
+            <input asp-for="ChargeHandedOverDate" class="form-control" />
+        </div>
+    </div>
+
+    <h5 class="mt-4">Travel Details</h5>
+    <table class="table table-bordered" id="tripsTable">
+        <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Departure Time</th>
+                <th>Return Time</th>
+                <th>Fare (Rs.)</th>
+                <th>Allowance (Rs.)</th>
+                <th>Total (Rs.)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="tripsBody">
+            @for (int i = 0; i < Model.Trips.Count; i++)
+            {
+                <partial name="_TripRow" model="Model.Trips[i]" view-data="@(new ViewDataDictionary(ViewData) { { "Index", i } })" />
+            }
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-outline-secondary btn-sm mb-3" id="addRowBtn">+ Add Row</button>
+
+    <div>
+        <button type="submit" class="btn btn-primary">Save as Draft</button>
+        <a asp-action="MyBills" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+<template id="tripRowTemplate">
+    <partial name="_TripRow" model="@(new RentAllowanceBilling.Web.Models.ViewModels.TripRowViewModel())" view-data="@(new ViewDataDictionary(ViewData) { { "Index", "__INDEX__" } })" />
+</template>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (function () {
+            var body = document.getElementById('tripsBody');
+            var addBtn = document.getElementById('addRowBtn');
+            var templateHtml = document.getElementById('tripRowTemplate').innerHTML;
+            var rowIndex = @Model.Trips.Count;
+
+            addBtn.addEventListener('click', function () {
+                var html = templateHtml.replaceAll('__INDEX__', rowIndex);
+                var wrapper = document.createElement('tbody');
+                wrapper.innerHTML = html;
+                Array.prototype.forEach.call(wrapper.children, function (tr) {
+                    body.appendChild(tr);
+                });
+                rowIndex++;
+            });
+
+            body.addEventListener('click', function (e) {
+                if (e.target && e.target.classList.contains('removeRowBtn')) {
+                    var row = e.target.closest('tr');
+                    if (body.children.length > 1) {
+                        row.remove();
+                    }
+                }
+            });
+
+            body.addEventListener('input', function (e) {
+                if (e.target.classList.contains('trip-fare') || e.target.classList.contains('trip-allowance')) {
+                    var row = e.target.closest('tr');
+                    var fare = parseFloat(row.querySelector('.trip-fare').value) || 0;
+                    var allowance = parseFloat(row.querySelector('.trip-allowance').value) || 0;
+                    row.querySelector('.trip-total').textContent = (fare + allowance).toFixed(2);
+                }
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="text-center">
+    <h1 class="display-5">Rent Allowance Billing System</h1>
+    <p class="lead">Online submission and approval of staff rent / travel allowance bills (ભાડા ભથ્થા બીલ).</p>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a asp-controller="Bills" asp-action="Index" class="btn btn-primary btn-lg mt-3">Go to My Bills</a>
+    }
+    else
+    {
+        <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg mt-3">Login</a>
+        <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary btn-lg mt-3">Register</a>
+    }
+</div>

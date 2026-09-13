@@ -1,0 +1,119 @@
+@model RentAllowanceBilling.Web.Models.RentAllowanceBill
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Rent Allowance Bill @Model.BillNumber</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { padding: 30px; font-size: 14px; }
+        .field-line { border-bottom: 1px solid #333; display: inline-block; min-width: 180px; padding: 0 4px; }
+        table.trips th, table.trips td { padding: 4px 6px; font-size: 13px; }
+        .sign-block { margin-top: 40px; }
+        @@media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print mb-3">
+        <button class="btn btn-primary" onclick="window.print()">Print</button>
+    </div>
+
+    <p>જા.નં.: <span class="field-line">@Model.BillNumber</span> <span class="float-end">તા.: <span class="field-line">@Model.CreatedAt.ToString("dd-MM-yyyy")</span></span></p>
+    <p>પ્રતિ,<br />શ્રી બ્રાન્ચ મેનેજર સાહેબ,<br />શાખા: <span class="field-line">@Model.Branch?.Name</span></p>
+
+    <h5 class="text-center">વિષય : ભાડા ભથ્થા બીલ બાબત</h5>
+
+    <p>
+        સવિનય જણાવવાનું કે, હું તા. <span class="field-line">@Model.PeriodFrom.ToString("dd-MM-yyyy")</span>
+        થી તા. <span class="field-line">@Model.PeriodTo.ToString("dd-MM-yyyy")</span> સુધી
+        <span class="field-line">@Model.PurposeOfVisit</span> ના કામ સારુ ગયેલ.
+        જેના ભાડા-ભથ્થા બીલની રકમ રૂ. <span class="field-line">@Model.TotalAmount.ToString("0.00")</span> નીચે મુજબ છે.
+        જે મંજુર કરવા અંગે યોગ્ય કરવા વિનંતી છે.
+    </p>
+
+    <p>
+        કર્મચારીનું નામ: <span class="field-line">@Model.Employee?.FullName</span>
+        &nbsp;&nbsp; હોદ્દો: <span class="field-line">@Model.Employee?.Designation</span><br />
+        બેઝીક પગાર રૂ.: <span class="field-line">@Model.BasicSalary.ToString("0.00")</span>
+    </p>
+
+    <table class="table table-bordered trips">
+        <thead>
+            <tr>
+                <th>તારીખ</th><th>ક્યાંથી</th><th>ક્યાં</th><th>નીકળ્યા સમય</th><th>પરત આવ્યા સમય</th>
+                <th>ભાડુ</th><th>ભથ્થુ</th><th>કુલ</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var trip in Model.Trips.OrderBy(t => t.TravelDate))
+            {
+                <tr>
+                    <td>@trip.TravelDate.ToString("dd-MM-yyyy")</td>
+                    <td>@trip.FromPlace</td>
+                    <td>@trip.ToPlace</td>
+                    <td>@trip.DepartureTime</td>
+                    <td>@trip.ReturnTime</td>
+                    <td>@trip.Fare.ToString("0.00")</td>
+                    <td>@trip.Allowance.ToString("0.00")</td>
+                    <td>@trip.Total.ToString("0.00")</td>
+                </tr>
+            }
+            @for (int i = Model.Trips.Count; i < 5; i++)
+            {
+                <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="sign-block d-flex justify-content-between">
+        <div>પ્રતિ,<br />શ્રી આસી. જનરલ મેનેજર સાહેબ,<br />વડી કચેરી, હિંમતનગર.</div>
+        <div class="text-end">આપનો વિશ્વાસુ,<br />સહી: _______________</div>
+    </div>
+
+    <hr />
+
+    <p>
+        અત્રેની શાખાના કર્મચારીશ્રી <span class="field-line">@Model.Employee?.FullName</span>
+        તા. <span class="field-line">@Model.PeriodFrom.ToString("dd-MM-yyyy")</span> થી
+        તા. <span class="field-line">@Model.PeriodTo.ToString("dd-MM-yyyy")</span> સુધી
+        <span class="field-line">@Model.PurposeOfVisit</span> કામે ગયેલ.
+        જેના ભાડા-ભથ્થા બીલની રકમ રૂ. <span class="field-line">@Model.TotalAmount.ToString("0.00")</span>
+        પુરા બરાબર હોઈ મંજુર કરવા ભલામણ છે.
+    </p>
+    <div class="d-flex justify-content-between">
+        <div>
+            <strong>Branch Manager Remark:</strong> @Model.BranchManagerRemark<br />
+            <strong>Date:</strong> @Model.BranchManagerActionAt?.ToString("dd-MM-yyyy")
+        </div>
+        <div class="text-end">આપનો વિશ્વાસુ,<br />બ્રાન્ય મેનેજર<br />શાખા: @Model.Branch?.Name</div>
+    </div>
+
+    <hr />
+
+    <p>
+        ઉપરોક્ત બીલ રૂ. <span class="field-line">@Model.VerifiedAmount?.ToString("0.00")</span>
+        ચકાસણી કરતાં બરાબર માલુમ પડેલ છે. જે મંજુર થવા ભલામણ છે.
+    </p>
+    <p class="text-end">
+        આંકડા અધિકારી / એકાઉન્ટન્ટ<br />
+        તા. @Model.AccountantActionAt?.ToString("dd-MM-yyyy")
+    </p>
+
+    <hr />
+
+    <p>
+        જા.નં.એકા.: ______<br />
+        ઉપરોક્ત ભાડા-ભથ્થા બીલની રકમ રૂ. <span class="field-line">@Model.ApprovedAmount?.ToString("0.00")</span>
+        અંકે રૂપિયા <span class="field-line">@Model.ApprovedAmountInWords</span> પુરા ભાડા ભથ્થા ખર્ચ ખાતે
+        ઉધારી ચૂકવવાની આથી તમોને મંજુરી આપવામાં આવે છે.
+    </p>
+    <p class="text-end">આસી. જનરલ મેનેજર / ચીફ એક્ઝીક્યુટીવ</p>
+
+    <p><strong>નોંધ:</strong> આ બીલ બે નકલમાં મોકલવું.</p>
+</body>
+</html>

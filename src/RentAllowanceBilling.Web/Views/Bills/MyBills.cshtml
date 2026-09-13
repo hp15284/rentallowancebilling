@@ -1,0 +1,49 @@
+@model List<RentAllowanceBilling.Web.Models.RentAllowanceBill>
+@{
+    ViewData["Title"] = "My Rent Allowance Bills";
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h2>My Rent Allowance Bills</h2>
+    <a asp-action="Create" class="btn btn-primary">+ New Bill</a>
+</div>
+<hr />
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Bill No.</th>
+            <th>Period</th>
+            <th>Purpose</th>
+            <th>Amount (Rs.)</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var bill in Model)
+        {
+            <tr>
+                <td>@(bill.BillNumber ?? "(draft)")</td>
+                <td>@bill.PeriodFrom.ToString("dd-MMM-yyyy") - @bill.PeriodTo.ToString("dd-MMM-yyyy")</td>
+                <td>@bill.PurposeOfVisit</td>
+                <td>@bill.TotalAmount.ToString("0.00")</td>
+                <td><partial name="_StatusBadge" model="bill.Status" /></td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@bill.Id" class="btn btn-sm btn-outline-primary">View</a>
+                    @if (bill.Status == RentAllowanceBilling.Web.Models.BillStatus.Draft)
+                    {
+                        <form asp-action="Submit" asp-route-id="@bill.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-success">Submit</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

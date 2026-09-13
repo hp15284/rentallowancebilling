@@ -1,0 +1,23 @@
+@model List<RentAllowanceBilling.Web.Models.ViewModels.UserListItemViewModel>
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h2>Users</h2>
+<hr />
+
+<table class="table table-striped">
+    <thead><tr><th>Email</th><th>Full Name</th><th>Branch</th><th>Roles</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.Email</td>
+                <td>@u.FullName</td>
+                <td>@u.BranchName</td>
+                <td>@string.Join(", ", u.Roles)</td>
+                <td><a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary">Edit Roles</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

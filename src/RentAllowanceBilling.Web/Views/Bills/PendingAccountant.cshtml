@@ -1,0 +1,35 @@
+@model List<RentAllowanceBilling.Web.Models.RentAllowanceBill>
+@{
+    ViewData["Title"] = "Pending Accountant Verification";
+}
+
+<h2>Pending Accountant Verification</h2>
+<hr />
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Bill No.</th>
+            <th>Employee</th>
+            <th>Branch</th>
+            <th>Recommended By</th>
+            <th>Amount (Rs.)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var bill in Model)
+        {
+            <tr>
+                <td>@bill.BillNumber</td>
+                <td>@bill.Employee?.FullName</td>
+                <td>@bill.Branch?.Name</td>
+                <td>@bill.BranchManagerActionAt?.ToString("dd-MMM-yyyy")</td>
+                <td>@bill.TotalAmount.ToString("0.00")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@bill.Id" class="btn btn-sm btn-outline-primary">Review</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
