@@ -1,0 +1,23 @@
+@model RentAllowanceBilling.Web.Models.BasicPayWithAllowance
+@{
+    ViewData["Title"] = "Basic Pay Allowance Slab Details";
+}
+
+<h2>Basic Pay Allowance Slab Details</h2>
+<hr />
+<dl class="row col-md-6">
+    <dt class="col-sm-4">Min Basic Pay</dt>
+    <dd class="col-sm-8">@Model.MinBasicPay.ToString("N2")</dd>
+
+    <dt class="col-sm-4">Max Basic Pay</dt>
+    <dd class="col-sm-8">@(Model.MaxBasicPay is null ? "and above" : Model.MaxBasicPay.Value.ToString("N2"))</dd>
+
+    <dt class="col-sm-4">Allowance Amount</dt>
+    <dd class="col-sm-8">@Model.AllowanceAmount.ToString("N2")</dd>
+
+    <dt class="col-sm-4">Status</dt>
+    <dd class="col-sm-8">@(Model.IsActive ? "Active" : "Inactive")</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+<a asp-action="Index" class="btn btn-link">Back to list</a>

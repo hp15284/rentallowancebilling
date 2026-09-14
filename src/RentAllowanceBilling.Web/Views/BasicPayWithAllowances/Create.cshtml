@@ -1,0 +1,27 @@
+@model RentAllowanceBilling.Web.Models.BasicPayWithAllowance
+@{
+    ViewData["Title"] = "New Basic Pay Allowance Slab";
+}
+
+<h2>New Basic Pay Allowance Slab</h2>
+<hr />
+<form asp-action="Create" method="post" class="col-md-6">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="MinBasicPay" class="form-label"></label>
+        <input asp-for="MinBasicPay" class="form-control" />
+        <span asp-validation-for="MinBasicPay" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="MaxBasicPay" class="form-label"></label>
+        <input asp-for="MaxBasicPay" class="form-control" placeholder="Leave blank for 'and above'" />
+        <span asp-validation-for="MaxBasicPay" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="AllowanceAmount" class="form-label"></label>
+        <input asp-for="AllowanceAmount" class="form-control" />
+        <span asp-validation-for="AllowanceAmount" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>

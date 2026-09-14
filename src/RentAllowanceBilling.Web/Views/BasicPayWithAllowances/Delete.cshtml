@@ -1,0 +1,28 @@
+@model RentAllowanceBilling.Web.Models.BasicPayWithAllowance
+@{
+    ViewData["Title"] = "Delete Basic Pay Allowance Slab";
+}
+
+<h2>Delete Basic Pay Allowance Slab</h2>
+<hr />
+<p class="text-danger">Are you sure you want to delete this slab?</p>
+
+<dl class="row col-md-6">
+    <dt class="col-sm-4">Min Basic Pay</dt>
+    <dd class="col-sm-8">@Model.MinBasicPay.ToString("N2")</dd>
+
+    <dt class="col-sm-4">Max Basic Pay</dt>
+    <dd class="col-sm-8">@(Model.MaxBasicPay is null ? "and above" : Model.MaxBasicPay.Value.ToString("N2"))</dd>
+
+    <dt class="col-sm-4">Allowance Amount</dt>
+    <dd class="col-sm-8">@Model.AllowanceAmount.ToString("N2")</dd>
+
+    <dt class="col-sm-4">Status</dt>
+    <dd class="col-sm-8">@(Model.IsActive ? "Active" : "Inactive")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>
