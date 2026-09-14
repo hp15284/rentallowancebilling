@@ -15,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<RentAllowanceBill> RentAllowanceBills => Set<RentAllowanceBill>();
     public DbSet<RentAllowanceBillTrip> RentAllowanceBillTrips => Set<RentAllowanceBillTrip>();
+    public DbSet<BasicPayWithAllowance> BasicPayWithAllowances => Set<BasicPayWithAllowance>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
