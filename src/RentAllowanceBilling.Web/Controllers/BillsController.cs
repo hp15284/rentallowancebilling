@@ -65,16 +65,19 @@ public class BillsController : Controller
         return View(bills);
     }
 
-    // ---------- Branch Manager: raise & submit bills for their branch's employees ----------
+    // ---------- Branch Manager: raise & submit bills for employees ----------
 
-    private async Task PopulateEmployeesAsync(int branchId)
+    private async Task PopulateEmployeesAsync()
     {
         var employees = await _context.Employees
-            .Where(e => e.BranchId == branchId && e.IsActive)
+            .Include(e => e.Branch)
+            .Where(e => e.IsActive)
             .OrderBy(e => e.FullName)
             .ToListAsync();
 
-        ViewBag.Employees = new SelectList(employees, nameof(Employee.Id), nameof(Employee.FullName));
+        ViewBag.Employees = new SelectList(
+            employees.Select(e => new { e.Id, Display = $"{e.FullName} ({e.Branch?.Name})" }),
+            "Id", "Display");
         ViewBag.EmployeeDataJson = JsonSerializer.Serialize(employees.Select(e => new
         {
             id = e.Id,
@@ -108,7 +111,7 @@ public class BillsController : Controller
             return RedirectToAction(nameof(PendingBranchManager));
         }
 
-        await PopulateEmployeesAsync(branchId);
+        await PopulateEmployeesAsync();
         return View(new BillFormViewModel { BranchId = branchId });
     }
 
@@ -121,10 +124,10 @@ public class BillsController : Controller
         if (currentUser?.BranchId is not int branchId) return Forbid();
 
         var employee = await _context.Employees
-            .FirstOrDefaultAsync(e => e.Id == model.EmployeeId && e.BranchId == branchId && e.IsActive);
+            .FirstOrDefaultAsync(e => e.Id == model.EmployeeId && e.IsActive);
         if (employee is null)
         {
-            ModelState.AddModelError(nameof(model.EmployeeId), "Select a valid employee from your branch.");
+            ModelState.AddModelError(nameof(model.EmployeeId), "Select a valid employee.");
         }
 
         var trips = (model.Trips ?? new()).Where(t => t.TravelDate.HasValue && !string.IsNullOrWhiteSpace(t.FromPlace)).ToList();
@@ -155,7 +158,7 @@ public class BillsController : Controller
                 model.Designation = employee.Designation;
                 model.BasicSalary = employee.BasicSalary;
             }
-            await PopulateEmployeesAsync(branchId);
+            await PopulateEmployeesAsync();
             return View(model);
         }
 
