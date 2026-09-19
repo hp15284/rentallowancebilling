@@ -76,6 +76,7 @@ public class EmployeesController : Controller
         if (existing is null) return NotFound();
 
         existing.FullName = employee.FullName;
+        existing.PfNumber = employee.PfNumber;
         existing.Designation = employee.Designation;
         existing.BasicSalary = employee.BasicSalary;
         existing.BranchId = employee.BranchId;

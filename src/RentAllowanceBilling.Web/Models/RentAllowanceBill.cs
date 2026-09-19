@@ -49,25 +49,11 @@ public class RentAllowanceBill
 
     public DateTime? SubmittedAt { get; set; }
 
-    // Branch Manager recommendation (પ્રતિ, શ્રી આસી. જનરલ મેનેજર / બ્રાન્ય મેનેજર સહી)
+    // Branch Manager recommendation & final approval (પ્રતિ, શ્રી આસી. જનરલ મેનેજર / બ્રાન્ય મેનેજર સહી)
     public string? BranchManagerUserId { get; set; }
     public DateTime? BranchManagerActionAt { get; set; }
     [StringLength(500)]
     public string? BranchManagerRemark { get; set; }
-
-    // Accountant verification (આંકડા અધિકારી/એકાઉન્ટન્ટ)
-    public string? AccountantUserId { get; set; }
-    public DateTime? AccountantActionAt { get; set; }
-    [StringLength(500)]
-    public string? AccountantRemark { get; set; }
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? VerifiedAmount { get; set; }
-
-    // Approving authority sanction (આસી. જનરલ મેનેજર/ચીફ એક્ઝીક્યુટીવ)
-    public string? ApprovingAuthorityUserId { get; set; }
-    public DateTime? ApprovingAuthorityActionAt { get; set; }
-    [StringLength(500)]
-    public string? ApprovingAuthorityRemark { get; set; }
     [Column(TypeName = "decimal(18,2)")]
     public decimal? ApprovedAmount { get; set; }
     [StringLength(300)]

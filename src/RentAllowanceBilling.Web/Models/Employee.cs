@@ -10,6 +10,10 @@ public class Employee
     [Required, StringLength(150)]
     public string FullName { get; set; } = string.Empty;
 
+    // Provident Fund account number, used to look the employee up when raising a bill.
+    [StringLength(50)]
+    public string? PfNumber { get; set; }
+
     [Required, StringLength(100)]
     public string Designation { get; set; } = string.Empty;
 

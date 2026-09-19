@@ -10,12 +10,13 @@
 <hr />
 
 <table class="table table-striped">
-    <thead><tr><th>Name</th><th>Designation</th><th>Branch</th><th>Basic Salary</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Name</th><th>PF No.</th><th>Designation</th><th>Branch</th><th>Basic Salary</th><th>Status</th><th></th></tr></thead>
     <tbody>
         @foreach (var e in Model)
         {
             <tr>
                 <td>@e.FullName</td>
+                <td>@e.PfNumber</td>
                 <td>@e.Designation</td>
                 <td>@e.Branch?.Name</td>
                 <td>@e.BasicSalary.ToString("0.00")</td>

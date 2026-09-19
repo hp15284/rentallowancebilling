@@ -32,15 +32,7 @@
                             {
                                 <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="Create">New Bill</a></li>
                                 <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="Drafts">Drafts</a></li>
-                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="PendingBranchManager">Pending Recommendation</a></li>
-                            }
-                            @if (User.IsInRole(RentAllowanceBilling.Web.Models.Roles.Accountant))
-                            {
-                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="PendingAccountant">Pending Verification</a></li>
-                            }
-                            @if (User.IsInRole(RentAllowanceBilling.Web.Models.Roles.ApprovingAuthority))
-                            {
-                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="PendingApproval">Pending Approval</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="PendingBranchManager">Pending Approval</a></li>
                             }
                             @if (User.IsInRole(RentAllowanceBilling.Web.Models.Roles.Admin))
                             {

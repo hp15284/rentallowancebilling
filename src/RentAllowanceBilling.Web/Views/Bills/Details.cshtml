@@ -72,37 +72,11 @@
 <table class="table table-sm">
     <tbody>
         <tr>
-            <th style="width:220px">Branch Manager Recommendation</th>
+            <th style="width:220px">Branch Manager Approval</th>
             <td>
                 @if (Model.BranchManagerActionAt is not null)
                 {
-                    <text>@Model.BranchManagerActionAt?.ToString("dd-MMM-yyyy") &mdash; @Model.BranchManagerRemark</text>
-                }
-                else
-                {
-                    <em class="text-muted">Pending</em>
-                }
-            </td>
-        </tr>
-        <tr>
-            <th>Accountant Verification</th>
-            <td>
-                @if (Model.AccountantActionAt is not null)
-                {
-                    <text>@Model.AccountantActionAt?.ToString("dd-MMM-yyyy") &mdash; Verified Rs. @Model.VerifiedAmount?.ToString("0.00") &mdash; @Model.AccountantRemark</text>
-                }
-                else
-                {
-                    <em class="text-muted">Pending</em>
-                }
-            </td>
-        </tr>
-        <tr>
-            <th>Final Approval</th>
-            <td>
-                @if (Model.ApprovingAuthorityActionAt is not null)
-                {
-                    <text>@Model.ApprovingAuthorityActionAt?.ToString("dd-MMM-yyyy") &mdash; Approved Rs. @Model.ApprovedAmount?.ToString("0.00") (@Model.ApprovedAmountInWords) &mdash; @Model.ApprovingAuthorityRemark</text>
+                    <text>@Model.BranchManagerActionAt?.ToString("dd-MMM-yyyy") &mdash; Approved Rs. @Model.ApprovedAmount?.ToString("0.00") (@Model.ApprovedAmountInWords) &mdash; @Model.BranchManagerRemark</text>
                 }
                 else
                 {
@@ -123,56 +97,14 @@
 @if (User.IsInRole("BranchManager") && Model.Status == RentAllowanceBilling.Web.Models.BillStatus.PendingBranchManager)
 {
     <div class="card mt-3">
-        <div class="card-header">Branch Manager Recommendation</div>
+        <div class="card-header">Branch Manager Approval</div>
         <div class="card-body">
             <form asp-action="Recommend" method="post">
-                <input type="hidden" name="BillId" value="@Model.Id" />
-                <div class="mb-2">
-                    <label class="form-label">Remark</label>
-                    <textarea name="Remark" class="form-control" rows="2"></textarea>
-                </div>
-                <button type="submit" class="btn btn-success">Recommend to Accountant</button>
-            </form>
-            <partial name="_RejectForm" model="Model.Id" />
-        </div>
-    </div>
-}
-
-@if (User.IsInRole("Accountant") && Model.Status == RentAllowanceBilling.Web.Models.BillStatus.PendingAccountant)
-{
-    <div class="card mt-3">
-        <div class="card-header">Accountant Verification</div>
-        <div class="card-body">
-            <form asp-action="Verify" method="post">
-                <input type="hidden" name="BillId" value="@Model.Id" />
-                <div class="row">
-                    <div class="col-md-4 mb-2">
-                        <label class="form-label">Verified Amount (Rs.)</label>
-                        <input type="number" step="0.01" name="Amount" class="form-control" value="@Model.TotalAmount" />
-                    </div>
-                    <div class="col-md-8 mb-2">
-                        <label class="form-label">Remark</label>
-                        <input type="text" name="Remark" class="form-control" />
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-success">Verify & Forward for Approval</button>
-            </form>
-            <partial name="_RejectForm" model="Model.Id" />
-        </div>
-    </div>
-}
-
-@if (User.IsInRole("ApprovingAuthority") && Model.Status == RentAllowanceBilling.Web.Models.BillStatus.PendingApproval)
-{
-    <div class="card mt-3">
-        <div class="card-header">Final Approval / Sanction</div>
-        <div class="card-body">
-            <form asp-action="Approve" method="post">
                 <input type="hidden" name="BillId" value="@Model.Id" />
                 <div class="row">
                     <div class="col-md-4 mb-2">
                         <label class="form-label">Approved Amount (Rs.)</label>
-                        <input type="number" step="0.01" name="Amount" class="form-control" value="@Model.VerifiedAmount" />
+                        <input type="number" step="0.01" name="Amount" class="form-control" value="@Model.TotalAmount" />
                     </div>
                     <div class="col-md-8 mb-2">
                         <label class="form-label">Amount in Words</label>

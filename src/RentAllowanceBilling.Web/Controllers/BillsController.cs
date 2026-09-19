@@ -46,14 +46,6 @@ public class BillsController : Controller
         {
             return RedirectToAction(nameof(PendingBranchManager));
         }
-        if (User.IsInRole(Roles.Accountant))
-        {
-            return RedirectToAction(nameof(PendingAccountant));
-        }
-        if (User.IsInRole(Roles.ApprovingAuthority))
-        {
-            return RedirectToAction(nameof(PendingApproval));
-        }
         return RedirectToAction(nameof(MyBills));
     }
 
@@ -86,6 +78,7 @@ public class BillsController : Controller
         ViewBag.EmployeeDataJson = JsonSerializer.Serialize(employees.Select(e => new
         {
             id = e.Id,
+            pfNumber = e.PfNumber ?? "",
             designation = e.Designation,
             basicSalary = e.BasicSalary
         }));
@@ -266,78 +259,17 @@ public class BillsController : Controller
         bill.BranchManagerUserId = _userManager.GetUserId(User);
         bill.BranchManagerActionAt = DateTime.UtcNow;
         bill.BranchManagerRemark = model.Remark;
-        bill.Status = BillStatus.PendingAccountant;
+        bill.ApprovedAmount = model.Amount ?? bill.TotalAmount;
+        bill.ApprovedAmountInWords = model.AmountInWords;
+        bill.Status = BillStatus.Approved;
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(PendingBranchManager));
     }
 
-    // ---------- Accountant ----------
-
-    [Authorize(Roles = Roles.Accountant)]
-    public async Task<IActionResult> PendingAccountant()
-    {
-        var bills = await BillsWithIncludes()
-            .Where(b => b.Status == BillStatus.PendingAccountant)
-            .OrderBy(b => b.BranchManagerActionAt)
-            .ToListAsync();
-        return View(bills);
-    }
-
-    [Authorize(Roles = Roles.Accountant)]
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Verify(WorkflowActionViewModel model)
-    {
-        var bill = await _context.RentAllowanceBills.Include(b => b.Trips).FirstOrDefaultAsync(b => b.Id == model.BillId);
-        if (bill is null) return NotFound();
-        if (bill.Status != BillStatus.PendingAccountant) return BadRequest();
-
-        bill.AccountantUserId = _userManager.GetUserId(User);
-        bill.AccountantActionAt = DateTime.UtcNow;
-        bill.AccountantRemark = model.Remark;
-        bill.VerifiedAmount = model.Amount ?? bill.TotalAmount;
-        bill.Status = BillStatus.PendingApproval;
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction(nameof(PendingAccountant));
-    }
-
-    // ---------- Approving Authority ----------
-
-    [Authorize(Roles = Roles.ApprovingAuthority)]
-    public async Task<IActionResult> PendingApproval()
-    {
-        var bills = await BillsWithIncludes()
-            .Where(b => b.Status == BillStatus.PendingApproval)
-            .OrderBy(b => b.AccountantActionAt)
-            .ToListAsync();
-        return View(bills);
-    }
-
-    [Authorize(Roles = Roles.ApprovingAuthority)]
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Approve(WorkflowActionViewModel model)
-    {
-        var bill = await _context.RentAllowanceBills.FirstOrDefaultAsync(b => b.Id == model.BillId);
-        if (bill is null) return NotFound();
-        if (bill.Status != BillStatus.PendingApproval) return BadRequest();
-
-        bill.ApprovingAuthorityUserId = _userManager.GetUserId(User);
-        bill.ApprovingAuthorityActionAt = DateTime.UtcNow;
-        bill.ApprovingAuthorityRemark = model.Remark;
-        bill.ApprovedAmount = model.Amount ?? bill.VerifiedAmount;
-        bill.ApprovedAmountInWords = model.AmountInWords;
-        bill.Status = BillStatus.Approved;
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction(nameof(PendingApproval));
-    }
-
     // ---------- Shared ----------
 
-    [Authorize(Roles = $"{Roles.BranchManager},{Roles.Accountant},{Roles.ApprovingAuthority}")]
+    [Authorize(Roles = Roles.BranchManager)]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Reject(RejectBillViewModel model)

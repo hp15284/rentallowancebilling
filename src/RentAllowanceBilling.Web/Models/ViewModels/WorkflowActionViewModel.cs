@@ -2,9 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RentAllowanceBilling.Web.Models.ViewModels;
 
-// Used by Branch Manager recommendation, Accountant verification and
-// Approving Authority sanction steps — each is a lightweight remark +
-// optional amount confirmation before advancing the bill's status.
+// Used by the Branch Manager's recommend-and-approve step: a remark plus
+// the final approved amount before the bill's status advances.
 public class WorkflowActionViewModel
 {
     public int BillId { get; set; }

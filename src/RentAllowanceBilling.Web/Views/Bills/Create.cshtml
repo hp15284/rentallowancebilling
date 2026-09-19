@@ -12,7 +12,7 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">Search Employee</label>
-            <input type="text" id="employeeSearch" class="form-control" placeholder="Type employee name to search..." autocomplete="off" />
+            <input type="text" id="employeeSearch" class="form-control" placeholder="Type PF No. or employee name to search..." autocomplete="off" />
         </div>
         <div class="col-md-6 mb-3">
             <label asp-for="EmployeeId" class="form-label">Employee</label>
@@ -24,6 +24,10 @@
     </div>
 
     <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">PF No.</label>
+            <input id="pfNumberDisplay" class="form-control" disabled />
+        </div>
         <div class="col-md-4 mb-3">
             <label class="form-label">Designation</label>
             <input id="designationDisplay" class="form-control" value="@Model.Designation" disabled />
@@ -120,11 +124,13 @@
 
             var employeeSearch = document.getElementById('employeeSearch');
             var employeeSelect = document.getElementById('employeeSelect');
+            var pfNumberDisplay = document.getElementById('pfNumberDisplay');
             var designationDisplay = document.getElementById('designationDisplay');
             var basicSalaryDisplay = document.getElementById('basicSalaryDisplay');
 
             function applyEmployee(id) {
                 var e = employeeMap[id];
+                pfNumberDisplay.value = e ? e.pfNumber : '';
                 designationDisplay.value = e ? e.designation : '';
                 basicSalaryDisplay.value = e ? e.basicSalary : '';
             }
@@ -133,7 +139,9 @@
                 var term = employeeSearch.value.trim().toLowerCase();
                 Array.prototype.forEach.call(employeeSelect.options, function (opt) {
                     if (!opt.value) return;
-                    opt.hidden = term.length > 0 && opt.text.toLowerCase().indexOf(term) === -1;
+                    var e = employeeMap[opt.value];
+                    var haystack = opt.text.toLowerCase() + ' ' + (e && e.pfNumber ? e.pfNumber.toLowerCase() : '');
+                    opt.hidden = term.length > 0 && haystack.indexOf(term) === -1;
                 });
             });
 
