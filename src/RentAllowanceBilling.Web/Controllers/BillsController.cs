@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +12,18 @@ namespace RentAllowanceBilling.Web.Controllers;
 [Authorize]
 public class BillsController : Controller
 {
+    private static readonly string[] AllowedLeaveReportExtensions = { ".pdf", ".jpg", ".jpeg", ".png" };
+    private const long MaxLeaveReportSizeBytes = 5 * 1024 * 1024;
+
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IWebHostEnvironment _env;
 
-    public BillsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public BillsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env)
     {
         _context = context;
         _userManager = userManager;
+        _env = env;
     }
 
     private IQueryable<RentAllowanceBill> BillsWithIncludes() =>
@@ -100,6 +106,20 @@ public class BillsController : Controller
             ModelState.AddModelError(string.Empty, "Add at least one travel row with date, from and to place.");
         }
 
+        var leaveReportFile = model.LeaveReportCopy;
+        if (leaveReportFile is not null)
+        {
+            var extension = Path.GetExtension(leaveReportFile.FileName).ToLowerInvariant();
+            if (!AllowedLeaveReportExtensions.Contains(extension))
+            {
+                ModelState.AddModelError(nameof(model.LeaveReportCopy), "Leave report copy must be a PDF, JPG or PNG file.");
+            }
+            else if (leaveReportFile.Length > MaxLeaveReportSizeBytes)
+            {
+                ModelState.AddModelError(nameof(model.LeaveReportCopy), "Leave report copy must be 5 MB or smaller.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             model.EmployeeId = employee.Id;
@@ -133,10 +153,31 @@ public class BillsController : Controller
             }).ToList()
         };
 
+        if (leaveReportFile is not null)
+        {
+            bill.LeaveReportCopyPath = await SaveLeaveReportCopyAsync(leaveReportFile);
+        }
+
         _context.RentAllowanceBills.Add(bill);
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Details), new { id = bill.Id });
+    }
+
+    private async Task<string> SaveLeaveReportCopyAsync(IFormFile file)
+    {
+        var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "leave-reports");
+        Directory.CreateDirectory(uploadsFolder);
+
+        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName).ToLowerInvariant()}";
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        await using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        return $"/uploads/leave-reports/{fileName}";
     }
 
     private static TimeSpan? ParseTime(string? value) =>

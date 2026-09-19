@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace RentAllowanceBilling.Web.Models.ViewModels;
 
@@ -42,6 +43,9 @@ public class BillFormViewModel
     [Display(Name = "Manager on Leave To")]
     [DataType(DataType.Date)]
     public DateTime? ManagerOnLeaveTo { get; set; }
+
+    [Display(Name = "Leave Report Copy")]
+    public IFormFile? LeaveReportCopy { get; set; }
 
     [Display(Name = "Charge Handed Over On")]
     [DataType(DataType.Date)]

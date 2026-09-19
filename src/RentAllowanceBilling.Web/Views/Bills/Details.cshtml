@@ -25,6 +25,15 @@
 <div class="row mt-2">
     <div class="col-md-12"><strong>Purpose:</strong> @Model.PurposeOfVisit</div>
 </div>
+@if (!string.IsNullOrEmpty(Model.LeaveReportCopyPath))
+{
+    <div class="row mt-2">
+        <div class="col-md-12">
+            <strong>Leave Report Copy:</strong>
+            <a href="@Model.LeaveReportCopyPath" target="_blank">View</a>
+        </div>
+    </div>
+}
 
 <h5 class="mt-4">Travel Details</h5>
 <table class="table table-bordered">

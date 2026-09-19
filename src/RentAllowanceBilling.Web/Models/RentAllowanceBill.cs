@@ -35,6 +35,10 @@ public class RentAllowanceBill
     public DateTime? ManagerOnLeaveFrom { get; set; }
     public DateTime? ManagerOnLeaveTo { get; set; }
 
+    // Uploaded scanned copy of the manager/cashier's leave report, relative to wwwroot.
+    [StringLength(260)]
+    public string? LeaveReportCopyPath { get; set; }
+
     // તા. ___ ના રોજ ચાર્જ સંભાળેલ
     public DateTime? ChargeHandedOverDate { get; set; }
 

@@ -6,7 +6,7 @@
 <h2>New Rent Allowance Bill (ભાડા ભથ્થા બીલ)</h2>
 <hr />
 
-<form asp-action="Create" method="post" id="billForm">
+<form asp-action="Create" method="post" enctype="multipart/form-data" id="billForm">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="row">
@@ -42,6 +42,15 @@
         <div class="col-md-3 mb-3">
             <label asp-for="ManagerOnLeaveTo" class="form-label"></label>
             <input asp-for="ManagerOnLeaveTo" class="form-control" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="LeaveReportCopy" class="form-label"></label>
+            <input asp-for="LeaveReportCopy" type="file" accept=".pdf,.jpg,.jpeg,.png" class="form-control" />
+            <span asp-validation-for="LeaveReportCopy" class="text-danger"></span>
+            <div class="form-text">PDF, JPG or PNG, up to 5 MB.</div>
         </div>
     </div>
 
