@@ -10,17 +10,27 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="row">
-        <div class="col-md-4 mb-3">
-            <label class="form-label">Employee</label>
-            <input class="form-control" value="@Model.EmployeeName" disabled />
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Search Employee</label>
+            <input type="text" id="employeeSearch" class="form-control" placeholder="Type employee name to search..." autocomplete="off" />
         </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="EmployeeId" class="form-label">Employee</label>
+            <select asp-for="EmployeeId" id="employeeSelect" class="form-select" asp-items="ViewBag.Employees">
+                <option value="">-- Select Employee --</option>
+            </select>
+            <span asp-validation-for="EmployeeId" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-4 mb-3">
             <label class="form-label">Designation</label>
-            <input class="form-control" value="@Model.Designation" disabled />
+            <input id="designationDisplay" class="form-control" value="@Model.Designation" disabled />
         </div>
         <div class="col-md-4 mb-3">
             <label class="form-label">Basic Salary (Rs.)</label>
-            <input class="form-control" value="@Model.BasicSalary" disabled />
+            <input id="basicSalaryDisplay" class="form-control" value="@Model.BasicSalary" disabled />
         </div>
     </div>
 
@@ -92,7 +102,7 @@
 
     <div>
         <button type="submit" class="btn btn-primary">Save as Draft</button>
-        <a asp-action="MyBills" class="btn btn-link">Cancel</a>
+        <a asp-action="Drafts" class="btn btn-link">Cancel</a>
     </div>
 </form>
 
@@ -103,6 +113,39 @@
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
+        (function () {
+            var employeeData = @Html.Raw(ViewBag.EmployeeDataJson ?? "[]");
+            var employeeMap = {};
+            employeeData.forEach(function (e) { employeeMap[e.id] = e; });
+
+            var employeeSearch = document.getElementById('employeeSearch');
+            var employeeSelect = document.getElementById('employeeSelect');
+            var designationDisplay = document.getElementById('designationDisplay');
+            var basicSalaryDisplay = document.getElementById('basicSalaryDisplay');
+
+            function applyEmployee(id) {
+                var e = employeeMap[id];
+                designationDisplay.value = e ? e.designation : '';
+                basicSalaryDisplay.value = e ? e.basicSalary : '';
+            }
+
+            employeeSearch.addEventListener('input', function () {
+                var term = employeeSearch.value.trim().toLowerCase();
+                Array.prototype.forEach.call(employeeSelect.options, function (opt) {
+                    if (!opt.value) return;
+                    opt.hidden = term.length > 0 && opt.text.toLowerCase().indexOf(term) === -1;
+                });
+            });
+
+            employeeSelect.addEventListener('change', function () {
+                applyEmployee(employeeSelect.value);
+            });
+
+            if (employeeSelect.value) {
+                applyEmployee(employeeSelect.value);
+            }
+        })();
+
         (function () {
             var body = document.getElementById('tripsBody');
             var addBtn = document.getElementById('addRowBtn');

@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RentAllowanceBilling.Web.Data;
 using RentAllowanceBilling.Web.Models;
@@ -55,7 +57,7 @@ public class BillsController : Controller
         return RedirectToAction(nameof(MyBills));
     }
 
-    // ---------- Employee ----------
+    // ---------- Employee (view-only) ----------
 
     [Authorize(Roles = Roles.Employee)]
     public async Task<IActionResult> MyBills()
@@ -71,34 +73,66 @@ public class BillsController : Controller
         return View(bills);
     }
 
-    [Authorize(Roles = Roles.Employee)]
+    // ---------- Branch Manager: raise & submit bills for their branch's employees ----------
+
+    private async Task PopulateEmployeesAsync(int branchId)
+    {
+        var employees = await _context.Employees
+            .Where(e => e.BranchId == branchId && e.IsActive)
+            .OrderBy(e => e.FullName)
+            .ToListAsync();
+
+        ViewBag.Employees = new SelectList(employees, nameof(Employee.Id), nameof(Employee.FullName));
+        ViewBag.EmployeeDataJson = JsonSerializer.Serialize(employees.Select(e => new
+        {
+            id = e.Id,
+            designation = e.Designation,
+            basicSalary = e.BasicSalary
+        }));
+    }
+
+    [Authorize(Roles = Roles.BranchManager)]
+    public async Task<IActionResult> Drafts()
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser?.BranchId is not int branchId) return Forbid();
+
+        var bills = await BillsWithIncludes()
+            .Where(b => b.BranchId == branchId && b.Status == BillStatus.Draft)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+
+        return View(bills);
+    }
+
+    [Authorize(Roles = Roles.BranchManager)]
     public async Task<IActionResult> Create()
     {
-        var employee = await GetCurrentEmployeeAsync();
-        if (employee is null)
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser?.BranchId is not int branchId)
         {
-            TempData["Error"] = "Your login is not linked to an employee record. Contact the Administrator.";
-            return RedirectToAction(nameof(MyBills));
+            TempData["Error"] = "Your login is not linked to a branch. Contact the Administrator.";
+            return RedirectToAction(nameof(PendingBranchManager));
         }
 
-        var model = new BillFormViewModel
-        {
-            EmployeeId = employee.Id,
-            EmployeeName = employee.FullName,
-            Designation = employee.Designation,
-            BasicSalary = employee.BasicSalary,
-            BranchId = employee.BranchId
-        };
-        return View(model);
+        await PopulateEmployeesAsync(branchId);
+        return View(new BillFormViewModel { BranchId = branchId });
     }
 
     [HttpPost]
-    [Authorize(Roles = Roles.Employee)]
+    [Authorize(Roles = Roles.BranchManager)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(BillFormViewModel model)
     {
-        var employee = await GetCurrentEmployeeAsync();
-        if (employee is null) return Forbid();
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser?.BranchId is not int branchId) return Forbid();
+
+        var employee = await _context.Employees
+            .FirstOrDefaultAsync(e => e.Id == model.EmployeeId && e.BranchId == branchId && e.IsActive);
+        if (employee is null)
+        {
+            ModelState.AddModelError(nameof(model.EmployeeId), "Select a valid employee from your branch.");
+        }
 
         var trips = (model.Trips ?? new()).Where(t => t.TravelDate.HasValue && !string.IsNullOrWhiteSpace(t.FromPlace)).ToList();
         if (trips.Count == 0)
@@ -122,16 +156,20 @@ public class BillsController : Controller
 
         if (!ModelState.IsValid)
         {
-            model.EmployeeId = employee.Id;
-            model.EmployeeName = employee.FullName;
-            model.Designation = employee.Designation;
+            if (employee is not null)
+            {
+                model.EmployeeName = employee.FullName;
+                model.Designation = employee.Designation;
+                model.BasicSalary = employee.BasicSalary;
+            }
+            await PopulateEmployeesAsync(branchId);
             return View(model);
         }
 
         var bill = new RentAllowanceBill
         {
-            EmployeeId = employee.Id,
-            BranchId = employee.BranchId,
+            EmployeeId = employee!.Id,
+            BranchId = branchId,
             BasicSalary = employee.BasicSalary,
             PeriodFrom = model.PeriodFrom,
             PeriodTo = model.PeriodTo,
@@ -183,14 +221,14 @@ public class BillsController : Controller
     private static TimeSpan? ParseTime(string? value) =>
         TimeSpan.TryParse(value, out var ts) ? ts : null;
 
-    [Authorize(Roles = Roles.Employee)]
+    [Authorize(Roles = Roles.BranchManager)]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Submit(int id)
     {
-        var employee = await GetCurrentEmployeeAsync();
+        var currentUser = await _userManager.GetUserAsync(User);
         var bill = await _context.RentAllowanceBills.FirstOrDefaultAsync(b => b.Id == id);
-        if (bill is null || employee is null || bill.EmployeeId != employee.Id) return Forbid();
+        if (bill is null || currentUser?.BranchId is not int branchId || bill.BranchId != branchId) return Forbid();
         if (bill.Status != BillStatus.Draft) return BadRequest("Only draft bills can be submitted.");
 
         bill.Status = BillStatus.PendingBranchManager;
@@ -198,10 +236,10 @@ public class BillsController : Controller
         bill.BillNumber = $"RAB-{DateTime.UtcNow:yyyyMMdd}-{bill.Id:D5}";
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Details), new { id });
+        return RedirectToAction(nameof(Drafts));
     }
 
-    // ---------- Branch Manager ----------
+    // ---------- Branch Manager: recommend submitted bills ----------
 
     [Authorize(Roles = Roles.BranchManager)]
     public async Task<IActionResult> PendingBranchManager()

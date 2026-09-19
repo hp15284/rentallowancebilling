@@ -30,6 +30,8 @@
                             }
                             @if (User.IsInRole(RentAllowanceBilling.Web.Models.Roles.BranchManager))
                             {
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="Create">New Bill</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="Drafts">Drafts</a></li>
                                 <li class="nav-item"><a class="nav-link text-dark" asp-controller="Bills" asp-action="PendingBranchManager">Pending Recommendation</a></li>
                             }
                             @if (User.IsInRole(RentAllowanceBilling.Web.Models.Roles.Accountant))
